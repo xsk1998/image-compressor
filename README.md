@@ -3,7 +3,7 @@
 这是一个简单易用的在线图片压缩工具,采用苹果风格设计,帮助用户快速压缩图片文件大小。
 
 ## 在线使用
-- 访问：https://image-compressor-a75n.vercel.app
+- 访问：https://image-compressor-zeta.vercel.app
 
 ## 主要功能
 

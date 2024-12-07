@@ -17,11 +17,16 @@ body {
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.5;
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
 }
 
 .container {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 0;
+    width: 100%;
     padding: 2rem;
 }
 
@@ -52,15 +57,17 @@ header p {
     border: 2px dashed #E5E5E5;
     transition: all 0.3s ease;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 
 .upload-area:hover {
     border-color: var(--primary-color);
 }
 
-.upload-box img {
-    width: 64px;
-    margin-bottom: 1rem;
+.upload-box svg {
+    display: block;
+    margin: 0 auto 1rem;
 }
 
 .upload-box .sub-text {

@@ -13,8 +13,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let originalFile = null;
 
     // 上传区域点击事件
-    uploadArea.addEventListener('click', () => {
-        fileInput.click();
+    uploadArea.addEventListener('click', function(e) {
+        if (e.target !== fileInput) {
+            fileInput.click();
+        }
     });
 
     // 拖拽上传
@@ -113,5 +115,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // 阻止拖拽事件的默认行为
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults (e) {
+        e.preventDefault();
+        e.stopPropagation();
     }
 }); 
