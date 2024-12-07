@@ -3,7 +3,7 @@
 简单易用的在线图片压缩工具。
 
 ## 在线访问
-https://image-compressor-xsk1998.vercel.app
+https://image-compressor-zeta.vercel.app
 
 ## 功能
 - 支持 JPG 图片压缩
