@@ -13,10 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let originalFile = null;
 
     // 上传区域点击事件
-    uploadArea.addEventListener('click', function(e) {
-        if (e.target !== fileInput) {
-            fileInput.click();
-        }
+    uploadArea.addEventListener('click', () => {
+        fileInput.click();
     });
 
     // 拖拽上传
