@@ -12,7 +12,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let originalFile = null;
 
-    // 上传区域点击事件
+    // 阻止拖拽事件的默认行为
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // 上传区域点击��件
     uploadArea.addEventListener('click', () => {
         fileInput.click();
     });
@@ -76,19 +87,37 @@ document.addEventListener('DOMContentLoaded', function() {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
+                const ctx = canvas.getContext('2d', { alpha: true });
 
-                // 保持原始宽高比
+                // 设置画布尺寸
                 canvas.width = img.width;
                 canvas.height = img.height;
 
                 // 绘制图片
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                if (file.type === 'image/png') {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    // 对于PNG，保持原始质量，不做额外处理
+                } else {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
                 ctx.drawImage(img, 0, 0);
 
                 // 转换为压缩后的图片
                 canvas.toBlob((blob) => {
+                    // 如果是PNG且压缩后大小反而增加，则使用原始文件
+                    if (file.type === 'image/png' && blob.size > file.size) {
+                        compressedImage.src = URL.createObjectURL(file);
+                        compressedSize.textContent = formatFileSize(file.size);
+                        downloadBtn.onclick = () => {
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(file);
+                            link.download = `compressed_${originalFile.name}`;
+                            link.click();
+                        };
+                        return;
+                    }
+
                     compressedImage.src = URL.createObjectURL(blob);
                     compressedSize.textContent = formatFileSize(blob.size);
                     
@@ -99,7 +128,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         link.download = `compressed_${originalFile.name}`;
                         link.click();
                     };
-                }, file.type, quality);
+                }, file.type, file.type === 'image/png' ? 1 : quality);
+                // PNG格式：如果无法压缩则保持原样
             };
             img.src = e.target.result;
         };
@@ -113,16 +143,5 @@ document.addEventListener('DOMContentLoaded', function() {
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    // 阻止拖拽事件的默认行为
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults (e) {
-        e.preventDefault();
-        e.stopPropagation();
     }
 }); 
