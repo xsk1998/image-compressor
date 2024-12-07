@@ -8,34 +8,24 @@
 </head>
 <body>
     <div class="container">
-        <!-- 头部标题 -->
         <header>
             <h1>图片压缩工具</h1>
-            <p>简单快捷的在线图片压缩服务</p>
+            <p>简单快捷的图片压缩服务</p>
         </header>
 
-        <!-- 上传区域 -->
         <div class="upload-area" id="uploadArea">
-            <input type="file" id="fileInput" accept="image/png,image/jpeg" hidden>
+            <input type="file" id="fileInput" accept="image/jpeg" hidden>
             <div class="upload-box">
                 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="32" cy="32" r="30" stroke="#007AFF" stroke-width="2" stroke-dasharray="4 4"/>
-                    <path d="M32 44V20M32 20L24 28M32 20L40 28" 
-                        stroke="#007AFF" 
-                        stroke-width="2" 
-                        stroke-linecap="round" 
-                        stroke-linejoin="round"/>
-                    <path d="M20 44H44" 
-                        stroke="#007AFF" 
-                        stroke-width="2" 
-                        stroke-linecap="round"/>
+                    <path d="M32 44V20M32 20L24 28M32 20L40 28" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M20 44H44" stroke="#007AFF" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 <p>点击或拖拽图片到这里</p>
                 <p class="sub-text">支持 JPG 格式图片</p>
             </div>
         </div>
 
-        <!-- 预览和控制区域 -->
         <div class="preview-container" id="previewContainer" style="display: none;">
             <div class="preview-box">
                 <div class="original-image">
@@ -44,7 +34,7 @@
                         <img id="originalImage" alt="原始图片">
                     </div>
                     <div class="file-info">
-                        <span>文件大小: </span>
+                        <span>大小: </span>
                         <span id="originalSize">0 KB</span>
                     </div>
                 </div>
@@ -55,13 +45,12 @@
                         <img id="compressedImage" alt="压缩后的图片">
                     </div>
                     <div class="file-info">
-                        <span>文件大小: </span>
+                        <span>大小: </span>
                         <span id="compressedSize">0 KB</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 压缩控制 -->
             <div class="controls">
                 <div class="quality-control">
                     <label for="quality">压缩质量:</label>

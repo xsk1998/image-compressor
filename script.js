@@ -1,56 +1,48 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    const previewContainer = document.getElementById('previewContainer');
-    const originalImage = document.getElementById('originalImage');
-    const compressedImage = document.getElementById('compressedImage');
-    const originalSize = document.getElementById('originalSize');
-    const compressedSize = document.getElementById('compressedSize');
-    const qualitySlider = document.getElementById('quality');
-    const qualityValue = document.getElementById('qualityValue');
-    const downloadBtn = document.getElementById('downloadBtn');
+    const elements = {
+        uploadArea: document.getElementById('uploadArea'),
+        fileInput: document.getElementById('fileInput'),
+        previewContainer: document.getElementById('previewContainer'),
+        originalImage: document.getElementById('originalImage'),
+        compressedImage: document.getElementById('compressedImage'),
+        originalSize: document.getElementById('originalSize'),
+        compressedSize: document.getElementById('compressedSize'),
+        qualitySlider: document.getElementById('quality'),
+        qualityValue: document.getElementById('qualityValue'),
+        downloadBtn: document.getElementById('downloadBtn')
+    };
 
     let originalFile = null;
 
+    // 拖拽事件处理
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, e => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
-        document.body.addEventListener(eventName, e => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
+        elements.uploadArea.addEventListener(eventName, preventDefaults);
+        document.body.addEventListener(eventName, preventDefaults);
     });
 
-    uploadArea.addEventListener('click', () => fileInput.click());
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
 
-    uploadArea.addEventListener('dragover', () => {
-        uploadArea.style.borderColor = '#007AFF';
+    // 上传区域事件
+    elements.uploadArea.addEventListener('click', () => elements.fileInput.click());
+    elements.uploadArea.addEventListener('dragover', () => elements.uploadArea.style.borderColor = '#007AFF');
+    elements.uploadArea.addEventListener('dragleave', () => elements.uploadArea.style.borderColor = '#E5E5E5');
+    elements.uploadArea.addEventListener('drop', (e) => {
+        elements.uploadArea.style.borderColor = '#E5E5E5';
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
     });
 
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.style.borderColor = '#E5E5E5';
+    // 文件选择事件
+    elements.fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) handleFile(e.target.files[0]);
     });
 
-    uploadArea.addEventListener('drop', (e) => {
-        uploadArea.style.borderColor = '#E5E5E5';
-        if (e.dataTransfer.files.length > 0) {
-            handleFile(e.dataTransfer.files[0]);
-        }
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
-        }
-    });
-
-    qualitySlider.addEventListener('input', (e) => {
-        qualityValue.textContent = e.target.value + '%';
-        if (originalFile) {
-            compressImage(originalFile, e.target.value / 100);
-        }
+    // 质量滑块事件
+    elements.qualitySlider.addEventListener('input', (e) => {
+        elements.qualityValue.textContent = e.target.value + '%';
+        if (originalFile) compressImage(originalFile, e.target.value / 100);
     });
 
     function handleFile(file) {
@@ -62,10 +54,10 @@ document.addEventListener('DOMContentLoaded', function() {
         originalFile = file;
         const reader = new FileReader();
         reader.onload = (e) => {
-            originalImage.src = e.target.result;
-            originalSize.textContent = formatFileSize(file.size);
-            previewContainer.style.display = 'block';
-            compressImage(file, qualitySlider.value / 100);
+            elements.originalImage.src = e.target.result;
+            elements.originalSize.textContent = formatFileSize(file.size);
+            elements.previewContainer.style.display = 'block';
+            compressImage(file, elements.qualitySlider.value / 100);
         };
         reader.readAsDataURL(file);
     }
@@ -76,53 +68,26 @@ document.addEventListener('DOMContentLoaded', function() {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d', { alpha: true });
+                const ctx = canvas.getContext('2d');
 
-                let targetWidth = img.width;
-                let targetHeight = img.height;
-                
-                if (file.type === 'image/png') {
-                    const minRatio = 0.5;
-                    const maxRatio = 0.8;
-                    const compressionRatio = minRatio + (quality / 100) * (maxRatio - minRatio);
-                    const scaleFactor = Math.sqrt(compressionRatio);
-                    targetWidth = Math.floor(img.width * scaleFactor);
-                    targetHeight = Math.floor(img.height * scaleFactor);
-                }
+                canvas.width = img.width;
+                canvas.height = img.height;
 
-                canvas.width = targetWidth;
-                canvas.height = targetHeight;
-
-                if (file.type === 'image/png') {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-                } else {
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                }
-                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                 canvas.toBlob((blob) => {
-                    if (file.type === 'image/png') {
-                        const compressionRate = blob.size / file.size;
-                        if (compressionRate > 0.8 || compressionRate < 0.5) {
-                            const newQuality = quality * (0.65 / compressionRate);
-                            compressImage(file, newQuality);
-                            return;
-                        }
-                    }
-
-                    compressedImage.src = URL.createObjectURL(blob);
-                    compressedSize.textContent = formatFileSize(blob.size);
+                    elements.compressedImage.src = URL.createObjectURL(blob);
+                    elements.compressedSize.textContent = formatFileSize(blob.size);
                     
-                    downloadBtn.onclick = () => {
+                    elements.downloadBtn.onclick = () => {
                         const link = document.createElement('a');
                         link.href = URL.createObjectURL(blob);
                         link.download = `compressed_${originalFile.name}`;
                         link.click();
                     };
-                }, file.type, file.type === 'image/png' ? 1 : quality);
+                }, 'image/jpeg', quality);
             };
             img.src = e.target.result;
         };
