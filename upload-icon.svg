@@ -1,0 +1,17 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 外圈圆形 -->
+    <circle cx="32" cy="32" r="30" stroke="#007AFF" stroke-width="2" stroke-dasharray="4 4"/>
+    
+    <!-- 上传箭头 -->
+    <path d="M32 44V20M32 20L24 28M32 20L40 28" 
+        stroke="#007AFF" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+        
+    <!-- 底部线条 -->
+    <path d="M20 44H44" 
+        stroke="#007AFF" 
+        stroke-width="2" 
+        stroke-linecap="round"/>
+</svg> 
