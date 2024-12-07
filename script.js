@@ -12,25 +12,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let originalFile = null;
 
-    // 阻止拖拽事件的默认行为
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
+        uploadArea.addEventListener(eventName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        document.body.addEventListener(eventName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
     });
 
-    function preventDefaults (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
+    uploadArea.addEventListener('click', () => fileInput.click());
 
-    // 上传区域点击��件
-    uploadArea.addEventListener('click', () => {
-        fileInput.click();
-    });
-
-    // 拖拽上传
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
+    uploadArea.addEventListener('dragover', () => {
         uploadArea.style.borderColor = '#007AFF';
     });
 
@@ -39,22 +34,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
         uploadArea.style.borderColor = '#E5E5E5';
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFile(files[0]);
+        if (e.dataTransfer.files.length > 0) {
+            handleFile(e.dataTransfer.files[0]);
         }
     });
 
-    // 文件选择处理
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
             handleFile(e.target.files[0]);
         }
     });
 
-    // 质量滑块变化事件
     qualitySlider.addEventListener('input', (e) => {
         qualityValue.textContent = e.target.value + '%';
         if (originalFile) {
@@ -62,10 +53,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 处理上传的文件
     function handleFile(file) {
-        if (!file.type.match('image.*')) {
-            alert('请上传图片文件！');
+        if (file.type !== 'image/jpeg') {
+            alert('请上传JPG格式图片！');
             return;
         }
 
@@ -80,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
         reader.readAsDataURL(file);
     }
 
-    // 压缩图片
     function compressImage(file, quality) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -89,39 +78,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d', { alpha: true });
 
-                // 设置画布尺寸
-                canvas.width = img.width;
-                canvas.height = img.height;
+                let targetWidth = img.width;
+                let targetHeight = img.height;
+                
+                if (file.type === 'image/png') {
+                    const minRatio = 0.5;
+                    const maxRatio = 0.8;
+                    const compressionRatio = minRatio + (quality / 100) * (maxRatio - minRatio);
+                    const scaleFactor = Math.sqrt(compressionRatio);
+                    targetWidth = Math.floor(img.width * scaleFactor);
+                    targetHeight = Math.floor(img.height * scaleFactor);
+                }
 
-                // 绘制图片
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+
                 if (file.type === 'image/png') {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    // 对于PNG，保持原始质量，不做额外处理
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
                 } else {
                     ctx.fillStyle = 'white';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
-                ctx.drawImage(img, 0, 0);
+                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
-                // 转换为压缩后的图片
                 canvas.toBlob((blob) => {
-                    // 如果是PNG且压缩后大小反而增加，则使用原始文件
-                    if (file.type === 'image/png' && blob.size > file.size) {
-                        compressedImage.src = URL.createObjectURL(file);
-                        compressedSize.textContent = formatFileSize(file.size);
-                        downloadBtn.onclick = () => {
-                            const link = document.createElement('a');
-                            link.href = URL.createObjectURL(file);
-                            link.download = `compressed_${originalFile.name}`;
-                            link.click();
-                        };
-                        return;
+                    if (file.type === 'image/png') {
+                        const compressionRate = blob.size / file.size;
+                        if (compressionRate > 0.8 || compressionRate < 0.5) {
+                            const newQuality = quality * (0.65 / compressionRate);
+                            compressImage(file, newQuality);
+                            return;
+                        }
                     }
 
                     compressedImage.src = URL.createObjectURL(blob);
                     compressedSize.textContent = formatFileSize(blob.size);
                     
-                    // 更新下载按钮
                     downloadBtn.onclick = () => {
                         const link = document.createElement('a');
                         link.href = URL.createObjectURL(blob);
@@ -129,14 +123,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         link.click();
                     };
                 }, file.type, file.type === 'image/png' ? 1 : quality);
-                // PNG格式：如果无法压缩则保持原样
             };
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     }
 
-    // 格式化文件大小
     function formatFileSize(bytes) {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
